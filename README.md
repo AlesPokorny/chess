@@ -21,3 +21,10 @@ pip install -r requirements.txt
 ```
 python main.py
 ```
+
+
+## Missing functionalities (TODO)
+1. En passant
+2. Pawn promotion
+3. Mating
+4. Menu
