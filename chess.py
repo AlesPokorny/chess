@@ -1,5 +1,6 @@
 import numpy as np
 import config
+import constants
 from pieces import Piece
 import tkinter as tk
 from utils import (
@@ -7,6 +8,7 @@ from utils import (
     calculate_canvas_coordinates_from_board,
 )
 from typing import List, Type
+import subprocess
 
 
 class Chess:
@@ -69,7 +71,7 @@ class Chess:
                 )
 
     def draw_pieces(self):
-        for piece_name, piece in self.pieces.items():
+        for _, piece in self.pieces.items():
             piece.draw_piece()
 
     def on_click(self, event):
@@ -170,9 +172,10 @@ class Chess:
         if piece_name:
             self.pieces.pop(piece_name)
             self.pieces_pos.pop(piece_name)
+            subprocess.Popen(["afplay", constants.SOUND_FOLDER + "capture.wav"])
             print(f"Piece {piece_name} was captured")
 
-    def move_piece(self):
+    def move_piece(self, play_move_sound: bool=True):
         old_canvas_x, old_canvas_y = self.selected_item["canvas_xy"]
         piece = self.pieces[self.selected_item["piece"]]
         piece.move_piece(
@@ -182,12 +185,14 @@ class Chess:
         self.update_piece_position(
             piece_name=self.selected_item["piece"], new_pos=[self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]]
         )
+        if play_move_sound:
+            subprocess.Popen(["afplay", constants.SOUND_FOLDER + "move.wav"])
         self.is_selected = False
         self.white_turn = not self.white_turn
 
     def move_with_capture(self):
         self.capture_piece()
-        self.move_piece()
+        self.move_piece(play_move_sound=False)
 
     def select_piece(self, piece_name):
         self.create_select_rectangle()
