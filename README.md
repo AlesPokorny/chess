@@ -28,3 +28,4 @@ python main.py
 2. Pawn promotion
 3. Mating
 4. Menu
+5. Castling
