@@ -206,7 +206,7 @@ class Piece:
     def filter_off_the_board_moves(moves: List[List]) -> List:
         allowed_moves = []
         for x, y in moves:
-            if x < 8 and y < 8:
+            if 0 <= x < 8 and 0 <= y < 8:
                 allowed_moves.append([x, y])
 
         return allowed_moves

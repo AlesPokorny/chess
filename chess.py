@@ -109,12 +109,54 @@ class Chess:
                 self.create_select_rectangle()
                 self.is_selected = False
 
-    def get_possible_moves(self, piece_name):
+    def get_possible_moves(self, piece_name: str):
         if self.selected_item["item_turn"]:
             self.pieces[piece_name].calculate_possible_moves(pieces_pos=self.pieces_pos)
-            self.possible_moves = self.pieces[piece_name].possible_moves
-            print(f"Possible moves: {self.possible_moves}")
+            possible_moves = self.pieces[piece_name].possible_moves
+            print(f"Possible moves: {possible_moves}")
+            if len(possible_moves) > 0:
+                self.possible_moves = self.filter_illegal_moves(moves=possible_moves, piece_name=piece_name)
+            print(f"Filtered moves: {self.possible_moves}")
             self.draw_possible_moves()
+
+    def filter_illegal_moves(self, moves: List, piece_name: str) -> List:
+        original_position = self.pieces[piece_name].pos
+        if self.white_turn:
+            king_position = self.pieces_pos["K0"]
+        else:
+            king_position = self.pieces_pos["k0"]
+
+        legal_moves = []
+
+        for move in moves:
+            illegal_move = False
+            self.pieces[piece_name].pos = move
+            self.pieces_pos[piece_name] = move
+
+            if piece_name in ["k0", "K0"]:
+                king_position = move
+
+            for piece in self.pieces:
+                if self.pieces[piece].is_white != self.white_turn:
+                    self.pieces[piece].calculate_possible_moves(pieces_pos=self.pieces_pos)
+                    possible_moves = self.pieces[piece].possible_moves
+
+                    king_capture_moves = [
+                        possible_move
+                        for possible_move in possible_moves
+                        if possible_move == king_position and move != self.pieces[piece].pos
+                    ]
+                    if len(king_capture_moves) > 0:
+                        illegal_move = True
+                        break
+
+            if not illegal_move:
+                legal_moves.append(move)
+
+        self.pieces[piece_name].pos = original_position
+        self.pieces_pos[piece_name] = original_position
+
+        return legal_moves
 
     def remove_possible_move_marks(self):
         if len(self.possible_move_mark):
