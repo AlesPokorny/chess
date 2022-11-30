@@ -1,14 +1,13 @@
+import subprocess
+import tkinter as tk
+from typing import List, Type
+
 import numpy as np
+
 import config
 import constants
 from pieces import Piece
-import tkinter as tk
-from utils import (
-    calculate_board_coordinates_from_canvas,
-    calculate_canvas_coordinates_from_board,
-)
-from typing import List, Type
-import subprocess
+from utils import calculate_board_coordinates_from_canvas, calculate_canvas_coordinates_from_board
 
 
 class Chess:
@@ -53,7 +52,7 @@ class Chess:
     def draw_board(self):
         for row_number, row in enumerate(self.board):
             x = config.SQUARE_SIZE * row_number
-            for column_number, piece in enumerate(row):
+            for column_number, _ in enumerate(row):
                 if (row_number + column_number) % 2 == 0:
                     fill = config.WHITE_SQUARE_COLOR
                 else:
@@ -90,11 +89,11 @@ class Chess:
         print(f"Piece {piece_name}:")
         print(f"White turn {self.white_turn}")
         print(f'board coordinates {self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]}')
-        if (
-            self.is_selected & self.selected_item["item_turn"]
-            and len(self.possible_moves) > 0
-        ):
-            if [self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]] in self.possible_moves:
+        if self.is_selected & self.selected_item["item_turn"] and len(self.possible_moves) > 0:
+            if [
+                self.selected_coordinates["board_x"],
+                self.selected_coordinates["board_y"],
+            ] in self.possible_moves:
                 if piece_name:
                     self.move_with_capture()
                 else:
@@ -149,7 +148,10 @@ class Chess:
         self.pieces_pos[piece_name] = new_pos
 
     def get_piece_from_position(self) -> str:
-        pos = [self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]]
+        pos = [
+            self.selected_coordinates["board_x"],
+            self.selected_coordinates["board_y"],
+        ]
         piece_name = [k for k, v in self.pieces_pos.items() if v == pos]
         if len(piece_name) > 0:
             piece_name = piece_name[0]
@@ -175,7 +177,7 @@ class Chess:
             subprocess.Popen(["afplay", constants.SOUND_FOLDER + "capture.wav"])
             print(f"Piece {piece_name} was captured")
 
-    def move_piece(self, play_move_sound: bool=True):
+    def move_piece(self, play_move_sound: bool = True):
         old_canvas_x, old_canvas_y = self.selected_item["canvas_xy"]
         piece = self.pieces[self.selected_item["piece"]]
         piece.move_piece(
@@ -183,7 +185,11 @@ class Chess:
             move_y=self.selected_coordinates["canvas_y"] - old_canvas_y,
         )
         self.update_piece_position(
-            piece_name=self.selected_item["piece"], new_pos=[self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]]
+            piece_name=self.selected_item["piece"],
+            new_pos=[
+                self.selected_coordinates["board_x"],
+                self.selected_coordinates["board_y"],
+            ],
         )
         if play_move_sound:
             subprocess.Popen(["afplay", constants.SOUND_FOLDER + "move.wav"])
@@ -196,8 +202,14 @@ class Chess:
 
     def select_piece(self, piece_name):
         self.create_select_rectangle()
-        self.selected_item["canvas_xy"] = [self.selected_coordinates["canvas_x"], self.selected_coordinates["canvas_y"]]
-        self.selected_item["board_xy"] = [self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]]
+        self.selected_item["canvas_xy"] = [
+            self.selected_coordinates["canvas_x"],
+            self.selected_coordinates["canvas_y"],
+        ]
+        self.selected_item["board_xy"] = [
+            self.selected_coordinates["board_x"],
+            self.selected_coordinates["board_y"],
+        ]
         self.selected_item["piece"] = piece_name
         self.selected_item["item_turn"] = piece_name.isupper() == self.white_turn
         self.is_selected = True

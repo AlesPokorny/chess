@@ -1,8 +1,10 @@
-import config
-from PIL import ImageTk
 import tkinter as tk
-from utils import calculate_canvas_coordinates_from_board
 from typing import List
+
+from PIL import ImageTk
+
+import config
+from utils import calculate_canvas_coordinates_from_board
 
 
 class Piece:
@@ -38,12 +40,8 @@ class Piece:
         return img
 
     def draw_piece(self):
-        canvas_x, canvas_y = calculate_canvas_coordinates_from_board(
-            self.pos[0], self.pos[1]
-        )
-        self.drawn_image = self.canvas.create_image(
-            canvas_x, canvas_y, anchor="nw", image=self.image
-        )
+        canvas_x, canvas_y = calculate_canvas_coordinates_from_board(self.pos[0], self.pos[1])
+        self.drawn_image = self.canvas.create_image(canvas_x, canvas_y, anchor="nw", image=self.image)
 
     def move_piece(self, move_x, move_y):
         self.canvas.move(self.drawn_image, move_x, move_y)
@@ -72,7 +70,7 @@ class Piece:
 
     def get_rook_moves(self) -> List:
         x, y = self.pos
-        max_step = max([x, y, 7-x, 7-y])
+        max_step = max([x, y, 7 - x, 7 - y])
 
         directions = [
             [0, 1],
@@ -87,7 +85,7 @@ class Piece:
 
     def get_queen_moves(self) -> List:
         x, y = self.pos
-        max_step = max([x, y, 7-x, 7-y])
+        max_step = max([x, y, 7 - x, 7 - y])
 
         directions = [
             [0, 1],
@@ -103,7 +101,7 @@ class Piece:
         allowed_moves = self.get_straight_moves(directions=directions, max_step=max_step)
 
         return allowed_moves
-    
+
     def get_knight_moves(self) -> list:
         x, y = self.pos
         move_distances = [
@@ -133,14 +131,14 @@ class Piece:
     def get_king_moves(self) -> list:
         x, y = self.pos
         moves = [
-            [x, y+1],
-            [x, y-1],
-            [x+1, y],
-            [x-1, y],
-            [x+1, y+1],
-            [x+1, y-1],
-            [x-1, y+1],
-            [x-1, y-1],
+            [x, y + 1],
+            [x, y - 1],
+            [x + 1, y],
+            [x - 1, y],
+            [x + 1, y + 1],
+            [x + 1, y - 1],
+            [x - 1, y + 1],
+            [x - 1, y - 1],
         ]
 
         allowed_moves = []
@@ -152,7 +150,7 @@ class Piece:
 
     def get_bishop_moves(self) -> list:
         x, y = self.pos
-        max_step = max([x, y, 7-x, 7-y])
+        max_step = max([x, y, 7 - x, 7 - y])
 
         directions = [
             [1, 1],
@@ -176,20 +174,17 @@ class Piece:
         else:
             direction = 1
             starting_y = 1
-        
+
         if y == starting_y:
             forward_moves.append([x, y + 2 * direction])
-        
+
         forward_moves.append([x, y + direction])
         allowed_moves = []
         for pos in forward_moves:
             if (pos not in self.same_color_piece_pos) and (pos not in self.opponent_piece_pos):
                 allowed_moves.append(pos)
 
-        capture_moves = [
-            [x-1, y + direction],
-            [x+1, y + direction]
-        ]
+        capture_moves = [[x - 1, y + direction], [x + 1, y + direction]]
 
         for pos in capture_moves:
             if pos in self.opponent_piece_pos:
@@ -199,7 +194,10 @@ class Piece:
 
     def split_piece_pos_color(self, pieces_pos: list):
         same_color_pieces = list(
-            filter(lambda piece: piece[0].islower() == self.piece.islower(), pieces_pos)
+            filter(
+                lambda piece: piece[0].islower() == self.piece.islower(),
+                pieces_pos,
+            )
         )
         self.same_color_piece_pos = [pieces_pos[piece] for piece in same_color_pieces]
         self.opponent_piece_pos = [pieces_pos[piece] for piece in pieces_pos if piece not in same_color_pieces]
@@ -210,14 +208,14 @@ class Piece:
         for x, y in moves:
             if x < 8 and y < 8:
                 allowed_moves.append([x, y])
-        
+
         return allowed_moves
-    
+
     def get_pos_from_direction(self, dx: int, dy: int) -> List:
         x, y = self.pos
 
         return [x + dx, y + dy]
-    
+
     def get_straight_moves(self, directions: List, max_step: int) -> List:
         allowed_moves = []
 
@@ -226,7 +224,7 @@ class Piece:
                 dx, dy = [value * step for value in direction]
 
                 output_pos = self.get_pos_from_direction(dx=dx, dy=dy)
-                
+
                 if output_pos[0] > 7 or output_pos[1] > 7:
                     break
                 elif output_pos in self.opponent_piece_pos:
@@ -236,5 +234,5 @@ class Piece:
                     break
                 else:
                     allowed_moves.append(output_pos)
-        
+
         return allowed_moves
