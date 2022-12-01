@@ -107,7 +107,8 @@ class Chess:
             else:
                 if piece_name:
                     self.select_piece(piece_name=piece_name)
-                    self.draw_possible_moves(piece_name)
+                    if self.selected_item["item_turn"]:
+                        self.draw_possible_moves(piece_name)
                 else:
                     self.create_select_rectangle()
                     self.is_selected = False
