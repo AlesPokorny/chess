@@ -24,7 +24,6 @@ python main.py
 
 
 ## Missing functionalities (TODO)
-1. En passant
+1. Castling
 2. Pawn promotion
-4. Menu
-5. Castling
+3. Menu

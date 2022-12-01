@@ -46,7 +46,7 @@ class Piece:
     def move_piece(self, move_x, move_y):
         self.canvas.move(self.drawn_image, move_x, move_y)
 
-    def calculate_possible_moves(self, pieces_pos: list) -> list:
+    def calculate_possible_moves(self, pieces_pos: List, en_passant: List = []) -> List:
         self.split_piece_pos_color(pieces_pos=pieces_pos)
         piece_type = self.piece.lower()
         if piece_type == "n":
@@ -56,7 +56,7 @@ class Piece:
         elif piece_type == "b":
             moves = self.get_bishop_moves()
         elif piece_type == "p":
-            moves = self.get_pawn_moves()
+            moves = self.get_pawn_moves(en_passant=en_passant)
         elif piece_type == "r":
             moves = self.get_rook_moves()
         elif piece_type == "q":
@@ -166,9 +166,11 @@ class Piece:
 
         return allowed_moves
 
-    def get_pawn_moves(self) -> list:
+    def get_pawn_moves(self, en_passant: List) -> List:
         # TODO: Add en passant
         # TODO: Add promotion
+        if len(en_passant) > 0:
+            self.opponent_piece_pos.append(en_passant)
         x, y = self.pos
         forward_moves = []
         if self.is_white:

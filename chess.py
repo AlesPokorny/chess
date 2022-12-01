@@ -38,6 +38,7 @@ class Chess:
             "canvas_y": Type[int],
         }
         self.in_game = True
+        self.en_passant = []
 
     def run(self):
         self.init_pieces()
@@ -99,11 +100,16 @@ class Chess:
                 ] in self.possible_moves:
                     if piece_name:
                         self.move_with_capture()
+                    elif [self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]] == self.en_passant:
+                        self.en_passant_capture()
+                        self.move_piece(play_move_sound=False)
                     else:
                         self.move_piece()
                 else:
-                    self.select_piece(piece_name=piece_name)
-                    self.draw_possible_moves(piece_name)
+                    if piece_name:
+                        self.select_piece(piece_name=piece_name)
+                        if self.selected_item["item_turn"]:
+                            self.draw_possible_moves(piece_name)
             else:
                 if piece_name:
                     self.select_piece(piece_name=piece_name)
@@ -124,11 +130,9 @@ class Chess:
         return all_moves
 
     def get_possible_moves_per_piece(self, piece_name: str) -> List:
-        possible_moves = self.pieces[piece_name].calculate_possible_moves(pieces_pos=self.pieces_pos)
-        print(f"Possible moves: {possible_moves}")
+        possible_moves = self.pieces[piece_name].calculate_possible_moves(pieces_pos=self.pieces_pos, en_passant=self.en_passant)
         if len(possible_moves) > 0:
             possible_moves = self.filter_illegal_moves(moves=possible_moves, piece_name=piece_name)
-        print(f"Filtered moves: {self.possible_moves}")
         return possible_moves
 
     def filter_illegal_moves(self, moves: List, piece_name: str) -> List:
@@ -235,9 +239,11 @@ class Chess:
     def move_piece(self, play_move_sound: bool = True):
         old_canvas_x, old_canvas_y = self.selected_item["canvas_xy"]
         piece = self.pieces[self.selected_item["piece"]]
-        if piece.piece.lower() == "p" and self.selected_coordinates["board_y"] in [0, 7]:
-            # TODO: add piece promotion here
-            pass
+        if piece.piece.lower() == "p":
+            self.allow_en_passant()
+        else:
+            self.en_passant = []
+
         piece.move_piece(
             move_x=self.selected_coordinates["canvas_x"] - old_canvas_x,
             move_y=self.selected_coordinates["canvas_y"] - old_canvas_y,
@@ -256,6 +262,32 @@ class Chess:
         all_moves = self.get_all_possible_moves()
         if len(all_moves) == 0:
             self.show_winning_screen()
+
+    def allow_en_passant(self):
+        is_correct_rank = self.selected_coordinates["board_y"] in [3, 4]
+        if is_correct_rank:
+            was_moved_by_two = abs(self.selected_coordinates["board_y"] - self.selected_item["board_xy"][1]) == 2
+            if was_moved_by_two:
+                x = self.selected_coordinates["board_x"]
+                y = self.selected_coordinates["board_y"]
+                if self.white_turn:
+                    y = y + 1
+                else:
+                    y = y - 1
+                self.en_passant = [x, y]
+        else:
+            self.en_passant = []
+
+    def en_passant_capture(self):
+        is_en_passant_capture = [self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]] == self.en_passant
+        board_y = self.selected_coordinates["board_y"]
+        if is_en_passant_capture:
+            if self.white_turn:
+                self.selected_coordinates["board_y"] = board_y + 1
+            else:
+                self.selected_coordinates["board_y"] = board_y - 1
+            self.capture_piece()
+            self.selected_coordinates["board_y"] = board_y
 
     def move_with_capture(self):
         self.capture_piece()
