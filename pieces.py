@@ -66,6 +66,9 @@ class Piece:
 
         moves = self.filter_off_the_board_moves(moves=moves)
 
+        return moves
+
+    def assign_possible_moves(self, moves):
         self.possible_moves = moves
 
     def get_rook_moves(self) -> List:

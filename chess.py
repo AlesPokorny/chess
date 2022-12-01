@@ -1,7 +1,7 @@
 import subprocess
 import tkinter as tk
 from typing import List, Type
-
+import sys
 import numpy as np
 
 import config
@@ -40,6 +40,7 @@ class Chess:
 
     def run(self):
         self.init_pieces()
+        self.get_all_possible_moves()
         self.draw_board()
         self.draw_pieces()
         self.canvas.pack()
@@ -100,24 +101,31 @@ class Chess:
                     self.move_piece()
             else:
                 self.select_piece(piece_name=piece_name)
-                self.get_possible_moves(piece_name)
+                self.draw_possible_moves(piece_name)
         else:
             if piece_name:
                 self.select_piece(piece_name=piece_name)
-                self.get_possible_moves(piece_name)
+                self.draw_possible_moves(piece_name)
             else:
                 self.create_select_rectangle()
                 self.is_selected = False
 
-    def get_possible_moves(self, piece_name: str):
-        if self.selected_item["item_turn"]:
-            self.pieces[piece_name].calculate_possible_moves(pieces_pos=self.pieces_pos)
-            possible_moves = self.pieces[piece_name].possible_moves
-            print(f"Possible moves: {possible_moves}")
-            if len(possible_moves) > 0:
-                self.possible_moves = self.filter_illegal_moves(moves=possible_moves, piece_name=piece_name)
-            print(f"Filtered moves: {self.possible_moves}")
-            self.draw_possible_moves()
+    def get_all_possible_moves(self) -> List:
+        all_moves = []
+        for piece_name in self.pieces:
+            if self.pieces[piece_name].is_white == self.white_turn:
+                possible_moves = self.get_possible_moves_per_piece(piece_name=piece_name)
+                self.pieces[piece_name].possible_moves = possible_moves
+                all_moves = possible_moves
+        return all_moves
+
+    def get_possible_moves_per_piece(self, piece_name: str) -> List:
+        possible_moves = self.pieces[piece_name].calculate_possible_moves(pieces_pos=self.pieces_pos)
+        print(f"Possible moves: {possible_moves}")
+        if len(possible_moves) > 0:
+            possible_moves = self.filter_illegal_moves(moves=possible_moves, piece_name=piece_name)
+        print(f"Filtered moves: {self.possible_moves}")
+        return possible_moves
 
     def filter_illegal_moves(self, moves: List, piece_name: str) -> List:
         original_position = self.pieces[piece_name].pos
@@ -138,8 +146,7 @@ class Chess:
 
             for piece in self.pieces:
                 if self.pieces[piece].is_white != self.white_turn:
-                    self.pieces[piece].calculate_possible_moves(pieces_pos=self.pieces_pos)
-                    possible_moves = self.pieces[piece].possible_moves
+                    possible_moves = self.pieces[piece].calculate_possible_moves(pieces_pos=self.pieces_pos)
 
                     king_capture_moves = [
                         possible_move
@@ -164,7 +171,9 @@ class Chess:
                 self.canvas.delete(mark_to_delete)
             self.possible_move_mark = []
 
-    def draw_possible_moves(self):
+    def draw_possible_moves(self, piece_name):
+        self.possible_moves = self.pieces[piece_name].possible_moves
+
         if len(self.possible_moves) > 0:
             for x, y in self.possible_moves:
                 circle_x, circle_y = calculate_canvas_coordinates_from_board(x, y)
@@ -222,6 +231,9 @@ class Chess:
     def move_piece(self, play_move_sound: bool = True):
         old_canvas_x, old_canvas_y = self.selected_item["canvas_xy"]
         piece = self.pieces[self.selected_item["piece"]]
+        if piece.piece.lower() == "p" and self.selected_coordinates["board_y"] in [0, 7]:
+            # TODO: add piece promotion here
+            pass
         piece.move_piece(
             move_x=self.selected_coordinates["canvas_x"] - old_canvas_x,
             move_y=self.selected_coordinates["canvas_y"] - old_canvas_y,
@@ -237,6 +249,10 @@ class Chess:
             subprocess.Popen(["afplay", constants.SOUND_FOLDER + "move.wav"])
         self.is_selected = False
         self.white_turn = not self.white_turn
+        all_moves = self.get_all_possible_moves()
+        if len(all_moves) == 0:
+            # TODO add winning screen
+            sys.exit()
 
     def move_with_capture(self):
         self.capture_piece()
