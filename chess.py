@@ -3,7 +3,7 @@ import tkinter as tk
 from typing import List, Type
 import sys
 import numpy as np
-
+import os
 import config
 import constants
 from pieces import Piece
@@ -37,6 +37,7 @@ class Chess:
             "canvas_x": Type[int],
             "canvas_y": Type[int],
         }
+        self.in_game = True
 
     def run(self):
         self.init_pieces()
@@ -75,40 +76,41 @@ class Chess:
             piece.draw_piece()
 
     def on_click(self, event):
-        self.canvas.delete(self.select_rect)
-        (
-            self.selected_coordinates["board_x"],
-            self.selected_coordinates["board_y"],
-            self.selected_coordinates["canvas_x"],
-            self.selected_coordinates["canvas_y"],
-        ) = calculate_board_coordinates_from_canvas(event.x, event.y)
-        self.remove_possible_move_marks()
-        piece_name = self.get_piece_from_position()
-
-        print("\n\n")
-        print("Clicked on:")
-        print(f"Piece {piece_name}:")
-        print(f"White turn {self.white_turn}")
-        print(f'board coordinates {self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]}')
-        if self.is_selected & self.selected_item["item_turn"] and len(self.possible_moves) > 0:
-            if [
+        if self.in_game:
+            self.canvas.delete(self.select_rect)
+            (
                 self.selected_coordinates["board_x"],
                 self.selected_coordinates["board_y"],
-            ] in self.possible_moves:
-                if piece_name:
-                    self.move_with_capture()
+                self.selected_coordinates["canvas_x"],
+                self.selected_coordinates["canvas_y"],
+            ) = calculate_board_coordinates_from_canvas(event.x, event.y)
+            self.remove_possible_move_marks()
+            piece_name = self.get_piece_from_position()
+
+            print("\n\n")
+            print("Clicked on:")
+            print(f"Piece {piece_name}:")
+            print(f"White turn {self.white_turn}")
+            print(f'board coordinates {self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]}')
+            if self.is_selected & self.selected_item["item_turn"] and len(self.possible_moves) > 0:
+                if [
+                    self.selected_coordinates["board_x"],
+                    self.selected_coordinates["board_y"],
+                ] in self.possible_moves:
+                    if piece_name:
+                        self.move_with_capture()
+                    else:
+                        self.move_piece()
                 else:
-                    self.move_piece()
+                    self.select_piece(piece_name=piece_name)
+                    self.draw_possible_moves(piece_name)
             else:
-                self.select_piece(piece_name=piece_name)
-                self.draw_possible_moves(piece_name)
-        else:
-            if piece_name:
-                self.select_piece(piece_name=piece_name)
-                self.draw_possible_moves(piece_name)
-            else:
-                self.create_select_rectangle()
-                self.is_selected = False
+                if piece_name:
+                    self.select_piece(piece_name=piece_name)
+                    self.draw_possible_moves(piece_name)
+                else:
+                    self.create_select_rectangle()
+                    self.is_selected = False
 
     def get_all_possible_moves(self) -> List:
         all_moves = []
@@ -116,7 +118,8 @@ class Chess:
             if self.pieces[piece_name].is_white == self.white_turn:
                 possible_moves = self.get_possible_moves_per_piece(piece_name=piece_name)
                 self.pieces[piece_name].possible_moves = possible_moves
-                all_moves = possible_moves
+                if len(possible_moves) > 0:
+                    all_moves.append(possible_moves)
         return all_moves
 
     def get_possible_moves_per_piece(self, piece_name: str) -> List:
@@ -251,8 +254,7 @@ class Chess:
         self.white_turn = not self.white_turn
         all_moves = self.get_all_possible_moves()
         if len(all_moves) == 0:
-            # TODO add winning screen
-            sys.exit()
+            self.show_winning_screen()
 
     def move_with_capture(self):
         self.capture_piece()
@@ -271,3 +273,22 @@ class Chess:
         self.selected_item["piece"] = piece_name
         self.selected_item["item_turn"] = piece_name.isupper() == self.white_turn
         self.is_selected = True
+
+    def show_winning_screen(self):
+        self.in_game = False
+        if self.white_turn:
+            winning_color = "White"
+        else:
+            winning_color = "Black"
+        self.canvas.delete("all")
+        self.canvas.create_text(
+            (config.BOARD_SIZE / 2, config.BOARD_SIZE / 2), text=f"{winning_color} won", anchor="center", font="Helvetica 18 bold"
+        )
+
+    def restart(self):
+        self.tk_root.destroy()
+        os.startfile("main.py")
+
+    def quit(self):
+        self.tk_root.destroy()
+        sys.exit(0)
