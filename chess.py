@@ -9,9 +9,15 @@ import constants
 from pieces import Piece
 from utils import calculate_board_coordinates_from_canvas, calculate_canvas_coordinates_from_board
 
+import platform
+
+if platform.system() == "Windows":
+    import winsound
+
 
 class Chess:
-    def __init__(self):
+    def __init__(self, windows: bool):
+        self.windows = windows
         self.tk_root = tk.Tk()
         self.tk_root.title(config.GAME_TITLE)
         self.canvas = tk.Canvas(height=config.BOARD_SIZE, width=config.BOARD_SIZE)
@@ -102,9 +108,10 @@ class Chess:
                         self.move_with_capture()
                     elif [self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]] == self.en_passant:
                         self.en_passant_capture()
-                        self.move_piece(play_move_sound=False)
+                        self.play_sound(sound="capture")
                     else:
                         self.move_piece()
+                        self.play_sound(sound="move")
                 else:
                     if piece_name:
                         self.select_piece(piece_name=piece_name)
@@ -227,16 +234,29 @@ class Chess:
             outline=config.SELECT_COLOR,
             width=config.SELECT_WIDTH,
         )
+    
+    def play_sound(self, sound):
+        if sound == "move":
+            if self.windows:
+                winsound.PlaySound(constants.SOUND_FOLDER + constants.SOUND_MOVE_FILE, winsound.SND_FILENAME)
+            else:
+                subprocess.Popen(["afplay", constants.SOUND_FOLDER + constants.SOUND_MOVE_FILE])
 
+        elif sound == "capture":
+            if self.windows:
+                winsound.PlaySound(constants.SOUND_FOLDER + constants.SOUND_CAPTURE_FILE, winsound.SND_FILENAME)
+            else:
+                 subprocess.Popen(["afplay", constants.SOUND_FOLDER + constants.SOUND_CAPTURE_FILE])
+
+           
     def capture_piece(self):
         piece_name = self.get_piece_from_position()
         if piece_name:
             self.pieces.pop(piece_name)
             self.pieces_pos.pop(piece_name)
-            subprocess.Popen(["afplay", constants.SOUND_FOLDER + "capture.wav"])
             print(f"Piece {piece_name} was captured")
 
-    def move_piece(self, play_move_sound: bool = True):
+    def move_piece(self):
         old_canvas_x, old_canvas_y = self.selected_item["canvas_xy"]
         piece = self.pieces[self.selected_item["piece"]]
         if piece.piece.lower() == "p":
@@ -255,8 +275,6 @@ class Chess:
                 self.selected_coordinates["board_y"],
             ],
         )
-        if play_move_sound:
-            subprocess.Popen(["afplay", constants.SOUND_FOLDER + "move.wav"])
         self.is_selected = False
         self.white_turn = not self.white_turn
         all_moves = self.get_all_possible_moves()
@@ -291,7 +309,8 @@ class Chess:
 
     def move_with_capture(self):
         self.capture_piece()
-        self.move_piece(play_move_sound=False)
+        self.move_piece()
+        self.play_sound(sound="capture")
 
     def select_piece(self, piece_name):
         self.create_select_rectangle()
