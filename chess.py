@@ -234,7 +234,7 @@ class Chess:
             outline=config.SELECT_COLOR,
             width=config.SELECT_WIDTH,
         )
-    
+
     def play_sound(self, sound):
         if sound == "move":
             if self.windows:
@@ -246,9 +246,8 @@ class Chess:
             if self.windows:
                 winsound.PlaySound(constants.SOUND_FOLDER + constants.SOUND_CAPTURE_FILE, winsound.SND_FILENAME)
             else:
-                 subprocess.Popen(["afplay", constants.SOUND_FOLDER + constants.SOUND_CAPTURE_FILE])
+                subprocess.Popen(["afplay", constants.SOUND_FOLDER + constants.SOUND_CAPTURE_FILE])
 
-           
     def capture_piece(self):
         piece_name = self.get_piece_from_position()
         if piece_name:
