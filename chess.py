@@ -326,9 +326,9 @@ class Chess:
     def show_winning_screen(self):
         self.in_game = False
         if self.white_turn:
-            winning_color = "White"
-        else:
             winning_color = "Black"
+        else:
+            winning_color = "White"
         self.canvas.delete("all")
         self.canvas.create_text(
             (config.BOARD_SIZE / 2, config.BOARD_SIZE / 2), text=f"{winning_color} won", anchor="center", font="Helvetica 18 bold"
