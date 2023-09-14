@@ -108,7 +108,6 @@ class Chess:
                         self.move_with_capture()
                     elif [self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]] == self.en_passant:
                         self.en_passant_capture()
-                        self.play_sound(sound="capture")
                     else:
                         self.move_piece()
                         self.play_sound(sound="move")
@@ -296,15 +295,14 @@ class Chess:
             self.en_passant = []
 
     def en_passant_capture(self):
-        is_en_passant_capture = [self.selected_coordinates["board_x"], self.selected_coordinates["board_y"]] == self.en_passant
         board_y = self.selected_coordinates["board_y"]
-        if is_en_passant_capture:
-            if self.white_turn:
-                self.selected_coordinates["board_y"] = board_y + 1
-            else:
-                self.selected_coordinates["board_y"] = board_y - 1
-            self.capture_piece()
-            self.selected_coordinates["board_y"] = board_y
+        if self.white_turn:
+            self.selected_coordinates["board_y"] = board_y + 1
+        else:
+            self.selected_coordinates["board_y"] = board_y - 1
+        self.capture_piece()
+        self.selected_coordinates["board_y"] = board_y
+        self.move_piece()
 
     def move_with_capture(self):
         self.capture_piece()
